@@ -1,0 +1,66 @@
+[tool.poetry]
+name = "python-agent"
+version = "0.0.1"
+description = "Python agent"
+authors = ["Anders Hafreager <andershaf@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+include = '\.py$'
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+show-fixes = true
+select = [
+    "B0",     # bugbear
+    "E",      # default
+    "F",      # default
+    "I",      # isort
+    "UP",     # pyupgrade
+    "RUF100", # valid noqa annnotations
+]
+# Revert UP017 with https://github.com/cognitedata/cog-ai/issues/351
+ignore = ["E501", "UP017"]
+exclude = ["src/schemas/*", "typings/*", "*.ipynb"]
+src = ["src", "tests"]
+
+[tool.ruff.isort]
+known-first-party = ["tests"]
+
+[tool.poetry.dependencies]
+python = ">=3.11.0,<3.13"
+openai = "^1.3.9"
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.343"
+pre-commit = "^3.3.1"
+pytest = "^7.3.1"
+pytest-cov = "^5.0.0"
+python-dotenv = "^1.0.0"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["python_agent"]
+# Needed for local test discovery
+addopts = "--ignore=scripts/loadtesting --import-mode=importlib"
+markers = [
+    "integration: integration tests (deselect with '-m \"not integration\"').",
+]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportMissingTypeStubs = false
