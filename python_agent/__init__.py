@@ -1,11 +1,10 @@
-from python_agent.agent import Agent
+from python_agent.agent import Agent, ReasoningStrategy
 def chat_interface():
     print("Welcome to the terminal chat! Type 'exit' to quit.")
-    agent = Agent(model = "gpt-4o-mini", debug=False)
+    agent = Agent(model = "gpt-4o-mini", debug=False, reasoning_strategy=ReasoningStrategy.PLAIN)
     while True:
         # Take user input
         user_input = input("You: ")
-        # user_input = "How many Rs in strawberry?"
         
         if user_input.lower() == 'exit':
             print("Goodbye!")
