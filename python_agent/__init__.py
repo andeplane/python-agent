@@ -15,7 +15,6 @@ def chat_interface():
         
         # Display agent response
         print(f"Agent: {agent_response}\n")
-        return
 
 if __name__ == "__main__":
     chat_interface()

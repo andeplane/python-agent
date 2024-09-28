@@ -1,11 +1,11 @@
-from openai import OpenAI
-from typing import Optional, List
+from python_agent.llm import call_openai
+from enum import Enum
 
 from openai.types.chat import ChatCompletionMessageParam
 import re
 
 class Agent:
-    def __init__(self, model: str = "gpt-4o-mini", debug: bool = False):
+    def __init__(self, model: str = "gpt-4o-mini",  debug: bool = False):
         """
         Initializes the Agent.
 
@@ -13,7 +13,6 @@ class Agent:
             model (str): The OpenAI model to use.
             debug (bool): If True, enables debug mode to print all LLM interactions.
         """
-        self.client = OpenAI()
         self.model = model
         self.debug = debug
         self.cot_system_prompt = (
@@ -43,7 +42,7 @@ class Agent:
         self.default_system_prompt = (
             "You are an helpful AI assistant."
         )
-        self.messages: List[ChatCompletionMessageParam] = []
+        self.messages: list[ChatCompletionMessageParam] = []
 
     def chat(self, message: str) -> str:
         """
@@ -56,10 +55,13 @@ class Agent:
         Returns:
             str: The assistant's response.
         """
-        self.messages.append({"role": "user", "content": message})
         if self.debug:
             print(f"User: {message}")
+        self.messages.append({"role": "user", "content": message})
+        
         answer = self.think(message)
+        
+        self.messages.append({"role": "assistant", "content": answer})
         return answer
 
     def validate(self, user_message: str, thoughts: list[str]) -> bool:
@@ -70,7 +72,12 @@ class Agent:
             f"{thoughts_str}"
             f"Is the user question {user_message} answered? Answer only 'Yes' or 'No', nothing else."
         )
-        response = self.call_openai(prompt, "You are an AI assistant that will validate if a set if reasoning thoughts are answering a user question.")
+        response = call_openai(
+            self.messages, 
+            prompt, 
+            "You are an AI assistant that will validate if a set if reasoning thoughts are answering a user question.",
+            self.model
+            )
 
         if self.debug and response:
             print(f"Validation response: {response}")
@@ -83,7 +90,7 @@ class Agent:
         is_answered = False
         thoughts: list[str] = []
         while True:
-            answer = self.call_openai(user_message, self.cot_system_prompt)
+            answer = call_openai(self.messages, user_message, self.cot_system_prompt, self.model)
             if not answer:
                 continue
             if self.debug:
@@ -114,7 +121,7 @@ class Agent:
             "Respond with 'Yes' if the goal is achieved, or 'No' otherwise."
         )
 
-        response = self.call_openai(prompt)
+        response = call_openai(self.messages, prompt, self.default_system_prompt, self.model)
         if self.debug and response:
             print(f"Verification for Step '{step}': {response}")
         if response:
@@ -139,81 +146,12 @@ class Agent:
             "Final Answer:"
         )
 
-        response = self.call_openai(prompt, "You are an AI assistant that will formulate a final answer based on the thinking process.")
+        response = call_openai(
+            self.messages,
+            prompt, 
+            "You are an AI assistant that will formulate a final answer based on the thinking process.",
+            self.model
+            )
         if response:
             return response.strip()
         return "I'm sorry, I couldn't formulate a response based on the information provided."
-
-    def call_openai(self, prompt: str, system_prompt: str | None = None) -> Optional[str]:
-        """
-        Calls the OpenAI API with the given prompt and returns the response.
-
-        Args:
-            prompt (str): The prompt to send to the OpenAI API.
-
-        Returns:
-            Optional[str]: The API's response or None if failed.
-        """
-        if not system_prompt:
-            system_prompt = self.default_system_prompt
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1500,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0
-            )
-            if response and response.choices:
-                if not response.choices[0].message.content:
-                    raise ValueError("OpenAI API response is empty.")
-                llm_response = response.choices[0].message.content.strip()
-                if self.debug:
-                    print(f"Prompt Sent:\n{prompt}\n")
-                    print(f"LLM Response:\n{llm_response}\n")
-                return llm_response
-        except Exception as e:
-            print(f"OpenAI API call failed: {str(e)}")
-        return None
-
-    def extract_list_from_text(self, text: str) -> Optional[List[str]]:
-        """
-        Extracts a list of items from the given text.
-
-        Args:
-            text (str): The text containing a list.
-
-        Returns:
-            Optional[List[str]]: A list of extracted items or None if extraction fails.
-        """
-        # Match numbered lists (e.g., 1. Item)
-        pattern = re.compile(r'^\s*\d+\.\s*(.+)', re.MULTILINE)
-        matches = pattern.findall(text)
-        if matches:
-            return [match.strip() for match in matches]
-        
-        # If no numbered list, try bulleted list
-        pattern = re.compile(r'^\s*[-*]\s*(.+)', re.MULTILINE)
-        matches = pattern.findall(text)
-        if matches:
-            return [match.strip() for match in matches]
-        
-        # If no list found, return the entire text as a single step
-        if text:
-            return [text.strip()]
-        
-        return None
-
-    def format_messages(self) -> str:
-        """
-        Formats the conversation history into a readable string.
-
-        Returns:
-            str: The formatted conversation history.
-        """
-        return "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in self.messages]) # type: ignore
