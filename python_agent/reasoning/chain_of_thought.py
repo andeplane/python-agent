@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from openai.types.chat import ChatCompletionMessageParam
-from python_agent.llm import call_openai
+from python_agent.llm import chat_completion
 from python_agent.reasoning.reasoning_base import ReasoningBase
+import logging
+
+logger = logging.getLogger('cot')
 
 @dataclass
 class ChainOfThought(ReasoningBase):
@@ -35,8 +38,10 @@ class ChainOfThought(ReasoningBase):
     def think(self, messages: list[ChatCompletionMessageParam], user_message: str) -> str:
         is_answered = False
         thoughts: list[str] = []
+        number_of_thoughts = 0
         while True:
-            answer = call_openai(messages, user_message, self.cot_system_prompt, self.model)
+            number_of_thoughts += 1
+            answer = chat_completion(messages, user_message, self.cot_system_prompt, self.model)
             if not answer:
                 continue
             if self.debug:
@@ -44,22 +49,22 @@ class ChainOfThought(ReasoningBase):
             thoughts.append(answer)
             is_answered = self.validate(messages, user_message, thoughts)
             if is_answered:
+                print(f"Question answered in {number_of_thoughts} thoughts.")
                 return self.formulate_final_answer(messages, user_message, thoughts)
-            else:
-                print(f"Reasoning did not contain the answer")
     
     def validate(self, messages: list[ChatCompletionMessageParam], user_message: str, thoughts: list[str]) -> bool:
         thoughts_str = "\n\n".join(thoughts)
         prompt = (
-            f"Here is the thinking process for the question '{user_message}'.\n\n"
-            "Based on the following conversation history\n\n"
-            f"{thoughts_str}"
-            f"Is the user question {user_message} answered? Answer only 'Yes' or 'No', nothing else."
+            f"User question: '{user_message}'.\n\n"
+            "Reasoning: \n\n"
+            f"{thoughts_str}\n\n"
+            f"Answer only 'Yes' or 'No', nothing else."
+            f"Answer: "
         )
-        response = call_openai(
+        response = chat_completion(
             messages, 
             prompt, 
-            "You are an AI assistant that will validate if a set if reasoning thoughts are answering a user question.",
+            "You are an AI assistant that will validate if a set if reasoning thoughts are answering a given user question. The answer should be only Yes or No.",
             self.model
             )
 
@@ -82,15 +87,15 @@ class ChainOfThought(ReasoningBase):
         """
         thoughts_str = "\n\n".join(thoughts)
         prompt = (
-            f"Given the following question {user_question}, and the following thinking, formulate a clear and concise answer to the user.\n\n"
+            f"Question: {user_question}\n\n"
             f"Compiled Information:\n{thoughts_str}\n\n"
             "Final Answer:"
         )
 
-        response = call_openai(
+        response = chat_completion(
             messages,
             prompt, 
-            "You are an AI assistant that will formulate a final answer based on the thinking process.",
+            "You are an AI assistant that will formulate a final answer based on the thinking process. Formulate a clear and concise answer to the user, it should appear natural in a chat.",
             self.model
             )
         if response:

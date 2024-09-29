@@ -3,6 +3,9 @@ from python_agent.reasoning.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
 from python_agent.reasoning.reasoning_base import ReasoningBase
 from openai.types.chat import ChatCompletionMessageParam
+import logging
+
+logger = logging.getLogger('agent')
 
 class ReasoningStrategy(Enum):
     PLAIN = "Plain"
