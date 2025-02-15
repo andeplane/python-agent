@@ -2,7 +2,7 @@ from enum import Enum
 from python_agent.reasoning.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
 from python_agent.reasoning.reasoning_base import ReasoningBase
-from openai.types.chat import ChatCompletionMessageParam
+from typing import Callable
 import logging
 
 logger = logging.getLogger('agent')
@@ -14,9 +14,11 @@ class ReasoningStrategy(Enum):
 class Agent:
     model: str
     debug: bool
+    tools: list[Callable]
     reasoning_engine: ReasoningBase
+    log_file_name: str
 
-    def __init__(self, model: str = "gpt-4o-mini", reasoning_strategy: ReasoningStrategy = ReasoningStrategy.COT, debug: bool = False):
+    def __init__(self, model: str = "gpt-4o-mini", reasoning_strategy: ReasoningStrategy = ReasoningStrategy.PLAIN, debug: bool = False, tools: list[Callable] = [], log_file_name: str = "agent_log.log"):
         """
         Initializes the Agent.
 
@@ -26,12 +28,14 @@ class Agent:
         """
         self.model = model
         self.debug = debug
+        self.tools = tools
+        self.log_file_name = log_file_name
         if reasoning_strategy == ReasoningStrategy.COT:
-            self.reasoning_engine = ChainOfThought(self.model, self.debug)
+            self.reasoning_engine = ChainOfThought(self.model, self.tools, self.debug, self.log_file_name)
         elif reasoning_strategy == ReasoningStrategy.PLAIN:
-            self.reasoning_engine = PlainReasoning(self.model, self.debug)
+            self.reasoning_engine = PlainReasoning(self.model, self.tools, self.debug, self.log_file_name)
 
-        self.messages: list[ChatCompletionMessageParam] = []
+        self.messages = []
 
     def chat(self, message: str) -> str:
         """
