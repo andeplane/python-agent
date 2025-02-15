@@ -4,7 +4,7 @@ from python_agent.reasoning.reasoning_base import ReasoningBase
 from python_agent.swarm import Swarm, Agent
 from auth import create_client
 from typing import Callable, Any
-from python_agent.reasoning.chain_of_thought.prompts import cot_system_prompt, planner_prompt, validate_prompt, final_answer_prompt
+from python_agent.reasoning.chain_of_thought.prompts import get_cot_system_prompt, planner_prompt, validate_prompt, final_answer_prompt
 from python_agent.tools.AgentTool import AgentTool
 
 logger = logging.getLogger('cot')
@@ -37,12 +37,8 @@ class ChainOfThought(ReasoningBase):
 
         self.agent = Agent(
             model=model,
-            instructions=cot_system_prompt,
+            instructions=get_cot_system_prompt(),
             functions=[tool['function'] for tool in tools]
-        )
-
-        self.plain_agent = Agent(
-            model=model
         )
         
     def think(self, messages: list[dict[str, Any]], user_message: str) -> str:

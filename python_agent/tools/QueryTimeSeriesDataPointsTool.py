@@ -129,6 +129,7 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
 
         # 8. Construct a message combining the latest datapoint and the aggregates
         result_message = (
+            f"For the time series: {externalId} in space: {space} from {start} to {end} with {num_data_points} data points\n"
             f"Here is the latest data point:\n{json.dumps(latest_dp_local, indent=2)}.\n\n"
             f"Here are {num_data_points} aggregates:\n{json.dumps(data_points_local, indent=2)}"
         )
