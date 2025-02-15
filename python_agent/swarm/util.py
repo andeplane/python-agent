@@ -75,7 +75,6 @@ def function_to_json(func) -> dict:
         for param in signature.parameters.values()
         if param.default == inspect._empty
     ]
-
     return {
         "type": "function",
         "function": {

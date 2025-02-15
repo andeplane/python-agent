@@ -47,6 +47,9 @@ class QueryKnowledgeGraphTool(AgentTool):
                                 json=body)
             query = response.json()
             data = self.execute_query(query)
+            aggregation_results = None
+            if query['operation'] == 'list':
+                aggregation_results = self.execute_query({**query, "operation": 'aggregate', "aggregate": {"properties": {"count": ["externalId"]}}})
             items = data.get("items", [])
             with open(self.log_file_name, "a", encoding='utf-8') as f:
                 f.write(f" [Thinking ...] Query Knowledge Graph result: {len(items)} items.\n")
@@ -56,6 +59,7 @@ class QueryKnowledgeGraphTool(AgentTool):
             return f"""
                 I generated the following query: {query}
                 Which gave the following instances from CDF: {items}
+                {aggregation_results if aggregation_results else ""}
             """
         except Exception as e:
             with open(self.log_file_name, "a", encoding='utf-8') as f:
