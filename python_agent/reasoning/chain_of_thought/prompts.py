@@ -55,6 +55,7 @@ validate_prompt: str = (
     "If the user is just having conversation, you should see if the thought process includes sufficient information to continue conversation."
     "Questions often requires that we query Cognite Data Fusion, so anytime a question may require data, ensure that we tried that first."
     "If you see indications that data has been fetched, it has been fetched from Cognite Data Fusion, so that may be ok."
+    "It is crucial that we verify that any answer actually comes from the correct data source. If not, we should fetch more data."
 )
 
 final_answer_prompt: str = (

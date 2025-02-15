@@ -2,7 +2,8 @@ from enum import Enum
 from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
 from python_agent.reasoning.reasoning_base import ReasoningBase
-from typing import Callable
+from typing import Callable, Any, Dict
+from python_agent.tools.AgentTool import AgentTool
 import logging
 
 logger = logging.getLogger('agent')
@@ -14,7 +15,7 @@ class ReasoningStrategy(Enum):
 class Agent:
     model: str
     debug: bool
-    tools: list[Callable]
+    tools: list[Dict[str, Callable[[], Any] | AgentTool]]
     reasoning_engine: ReasoningBase
     log_file_name: str
 

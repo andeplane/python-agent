@@ -52,11 +52,16 @@ def query_time_series_data_points(space: str, externalId: str, start_iso8601: st
     return query_time_series_data_points_tool.execute(space, externalId, start, end, num_data_points)
 
 
+
 agent = Agent( 
     model="azure/gpt-4o-mini",
     reasoning_strategy=ReasoningStrategy.COT,
     debug=False,
-    tools=[find_assets, find_time_series, query_time_series_data_points]
+    tools=[
+        {'instance': find_assets_tool, 'function': find_assets},
+        {'instance': find_time_series_tool, 'function': find_time_series},
+        {'instance': query_time_series_data_points_tool, 'function': query_time_series_data_points}
+    ]
 )
 
 import sys

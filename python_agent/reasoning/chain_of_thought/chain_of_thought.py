@@ -5,6 +5,7 @@ from python_agent.swarm import Swarm, Agent
 from auth import create_client
 from typing import Callable, Any
 from python_agent.reasoning.chain_of_thought.prompts import cot_system_prompt, planner_prompt, validate_prompt, final_answer_prompt
+from python_agent.tools.AgentTool import AgentTool
 
 logger = logging.getLogger('cot')
 
@@ -29,7 +30,7 @@ def create_task_agent(model: str, log_file_name: str, system_prompt: str):
 class ChainOfThought(ReasoningBase):
     agent: Agent = None
 
-    def __init__(self, model: str, tools: list[Callable[[], Any]], debug: bool, log_file_name: str):
+    def __init__(self, model: str, tools: list[dict[str, Callable[[], Any] | AgentTool]], debug: bool, log_file_name: str):
         super().__init__(model, tools, debug, log_file_name)
         cognite_client = create_client()
         self.client = Swarm(client=cognite_client)
@@ -37,7 +38,7 @@ class ChainOfThought(ReasoningBase):
         self.agent = Agent(
             model=model,
             instructions=cot_system_prompt,
-            functions=self.tools
+            functions=[tool['function'] for tool in tools]
         )
 
         self.plain_agent = Agent(
@@ -45,20 +46,16 @@ class ChainOfThought(ReasoningBase):
         )
         
     def think(self, messages: list[dict[str, Any]], user_message: str) -> str:
+        # Reset all tool logs
+        for tool in self.tools:
+            tool['instance'].reset_thought_log()
+
         with open(self.log_file_name, "a", encoding='utf-8') as f:
             f.write("User: " + user_message + "\n\n")
 
         is_answered = False
         thoughts: list[str] = []
         number_of_thoughts = 0
-
-        call_cot_llm = cognite_client = create_client()
-        client = Swarm(client=cognite_client)
-        agent = Agent(
-            model=self.model,
-            instructions=cot_system_prompt,
-            functions=self.tools
-        )
 
         cot_messages = messages.copy()
         cot_messages.append({"role": "user", "content": user_message})
@@ -70,8 +67,8 @@ class ChainOfThought(ReasoningBase):
 
         while True:
             number_of_thoughts += 1
-            answer = client.run(
-                agent=agent,
+            answer = self.client.run(
+                agent=self.agent,
                 messages=[*cot_messages, {"role": "user", "content": "Here is what I have thought so far: " + "\n\n".join(thoughts)}]
             )
 
@@ -122,8 +119,14 @@ class ChainOfThought(ReasoningBase):
             f"Answer only 'Yes' or 'No, here is why: <feedback on what's missing>', nothing else."
             f"Answer: "
         )})
+        system_prompt = validate_prompt
+
+        system_prompt += "\n\nHere are the tool calls we have performed so far: \n\n"
+        for tool in self.tools:
+            tool_instance = tool['instance']
+            system_prompt += tool_instance.retrieve_current_thoughts_log() + "\n"
         
-        call_llm = create_task_agent(self.model, self.log_file_name, validate_prompt)
+        call_llm = create_task_agent(self.model, self.log_file_name, system_prompt)
         response = call_llm(validate_messages)
         response = response.messages[-1]['content']
 

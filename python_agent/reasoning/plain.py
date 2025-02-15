@@ -2,23 +2,23 @@ from dataclasses import dataclass
 from python_agent.reasoning.reasoning_base import ReasoningBase
 from python_agent.swarm import Swarm, Agent
 from auth import create_client
-from typing import Callable
+from typing import Callable, Any
+from python_agent.tools.AgentTool import AgentTool
 
 @dataclass
 class PlainReasoning(ReasoningBase):
     model: str
     debug: bool = False
     
-    def __init__(self, model: str, tools: list[Callable], debug: bool):
-        super().__init__(model, tools, debug)
+    def __init__(self, model: str, tools: list[dict[str, Callable[[], Any] | AgentTool]], debug: bool, log_file_name: str):
+        super().__init__(model, tools, debug, log_file_name)
 
-    def think(self, messages, user_message: str) -> str:
+    def think(self, messages: list[dict[str, Any]], user_message: str) -> str:
         cognite_client = create_client()
         client = Swarm(client=cognite_client)
 
         agent = Agent(
-            client=client,
-            functions=self.tools
+            functions=[tool['function'] for tool in self.tools]
         )
         messages.append({"role": "user", "content": user_message})
 
