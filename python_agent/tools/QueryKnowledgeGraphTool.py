@@ -49,6 +49,8 @@ class QueryKnowledgeGraphTool(AgentTool):
             with open(self.log_file_name, "a", encoding='utf-8') as f:
                 f.write(f" [Thinking ...] Query Knowledge Graph result: {len(data)} items.\n")
             
+            self.current_thought_log.append(f"I asked the following question {prompt} on {self.views} that generated the following query: {query}, which gave the following instances from CDF: {data}")
+
             return {
                 "I generated the following query:": query,
                 "Which gave the following instances from CDF:": data

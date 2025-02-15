@@ -1,6 +1,6 @@
 from python_agent.agent import Agent, ReasoningStrategy
 from python_agent.reasoning.plain import PlainReasoning
-from python_agent.reasoning.chain_of_thought import ChainOfThought
+from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
 from python_agent.reasoning.reasoning_base import ReasoningBase
 from python_agent.tools.QueryKnowledgeGraphTool import QueryKnowledgeGraphTool
 from python_agent.tools.QueryTimeSeriesDataPointsTool import QueryTimeSeriesDataPointsTool

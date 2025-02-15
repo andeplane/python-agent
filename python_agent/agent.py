@@ -1,5 +1,5 @@
 from enum import Enum
-from python_agent.reasoning.chain_of_thought import ChainOfThought
+from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
 from python_agent.reasoning.reasoning_base import ReasoningBase
 from typing import Callable
