@@ -1,4 +1,5 @@
 from python_agent.tools.AgentTool import AgentTool
+import json
 class QueryKnowledgeGraphTool(AgentTool):
     def __init__(self, cognite_client, data_model, views, log_file_name: str):
         super().__init__(cognite_client, log_file_name)
@@ -46,15 +47,16 @@ class QueryKnowledgeGraphTool(AgentTool):
                                 json=body)
             query = response.json()
             data = self.execute_query(query)
+            items = data.get("items", [])
             with open(self.log_file_name, "a", encoding='utf-8') as f:
-                f.write(f" [Thinking ...] Query Knowledge Graph result: {len(data)} items.\n")
+                f.write(f" [Thinking ...] Query Knowledge Graph result: {len(items)} items.\n")
             
-            self.current_thought_log.append(f"I asked the following question {prompt} on {self.views} that generated the following query: {query}, which gave the following instances from CDF: {data}")
+            self.current_thought_log.append(f"[Tool call: Query knowledge graph]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}")
 
-            return {
-                "I generated the following query:": query,
-                "Which gave the following instances from CDF:": data
-            }
+            return f"""
+                I generated the following query: {query}
+                Which gave the following instances from CDF: {items}
+            """
         except Exception as e:
             with open(self.log_file_name, "a", encoding='utf-8') as f:
                 f.write("  [Thinking ...] Query Knowledge Graph Error: " + str(e) + "\n\n")

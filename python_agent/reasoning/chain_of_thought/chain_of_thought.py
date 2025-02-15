@@ -52,7 +52,13 @@ class ChainOfThought(ReasoningBase):
         thoughts: list[str] = []
         number_of_thoughts = 0
 
-        call_cot_llm = create_task_agent(self.model, self.log_file_name, cot_system_prompt)
+        call_cot_llm = cognite_client = create_client()
+        client = Swarm(client=cognite_client)
+        agent = Agent(
+            model=self.model,
+            instructions=cot_system_prompt,
+            functions=self.tools
+        )
 
         cot_messages = messages.copy()
         cot_messages.append({"role": "user", "content": user_message})
@@ -64,11 +70,14 @@ class ChainOfThought(ReasoningBase):
 
         while True:
             number_of_thoughts += 1
-            answer = call_cot_llm([*cot_messages, {"role": "user", "content": "Here is what I have thought so far: " + "\n\n".join(thoughts)}])
+            answer = client.run(
+                agent=agent,
+                messages=[*cot_messages, {"role": "user", "content": "Here is what I have thought so far: " + "\n\n".join(thoughts)}]
+            )
 
             if not answer:
                 continue
-            
+
             for message in answer.messages:
                 with open(self.log_file_name, "a", encoding='utf-8') as f:
                     f.write(" ** Agent thinking: " + message['content'] + "\n\n")

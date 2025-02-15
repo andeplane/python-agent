@@ -125,6 +125,7 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
             return {
                 "message": "There are no datapoints in this timeseries, or in the given range"
             }
+        self.current_thought_log.append(f"[Tool call: Query time series data points]:\n Time series: {externalId}\n Space: {space}\n Start: {start}\n End: {end}\n Number of data points: {num_data_points}")
 
         # 8. Construct a message combining the latest datapoint and the aggregates
         result_message = (
