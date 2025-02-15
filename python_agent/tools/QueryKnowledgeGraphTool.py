@@ -6,6 +6,26 @@ class QueryKnowledgeGraphTool(AgentTool):
         self.data_model = data_model
         self.views = views
 
+    def system_prompt_contribution(self) -> str:
+        return f"""
+        QueryKnowledgeGraphTool instructions:
+        This tool allows query generation from natural language. The following things can be mentioned:
+         - Operation. You can choose to list, search or aggregate.
+         - Filters on properties. This typically is filters on datetime properties, but often also relations. 
+           - In order to filter on relations, you always must provide the space and the externalId of the target node.
+         - Sorting. You can sort on properties
+         - Limit. You can limit the number of instances returned.
+        Usually, data is centered around assets. Strategy is often to find the right asset, then perform list queries with filters on this asset instance (space+externalId).
+        Alternatively, you can search directly on instances, but only when these instances are not coupled to the asset or this does not matter.
+        Examples:
+         - "Show me time series for asset in space <SPACE> with externalId <EXTERNALID>"
+         - "Show me assets with parent space <SPACE> with externalId <EXTERNALID>"
+         - "Show me activities sorted by start time.
+         - "Search for assets with name <NAME>"
+         - "How many activities were there in 2020?"
+         - "Show me the 10 latest activities"
+        """
+
     def execute_query(self, query):
         import json
         body = {

@@ -12,7 +12,10 @@ class AgentTool:
 
     def retrieve_current_thoughts_log(self) -> str:
         return '\n'.join(self.current_thought_log)
-
+    
+    def system_prompt_contribution(self) -> str:
+        return ""
+    
     def execute(self, query: str) -> str:
         """
         Abstract execute function that should be implemented by subclasses.

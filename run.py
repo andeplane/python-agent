@@ -18,6 +18,12 @@ find_assets_tool = QueryKnowledgeGraphTool(cognite_client, {
     "externalId": "CogniteCore"
 }, ["CogniteAsset"], "agent_log.log")
 
+find_files_tool = QueryKnowledgeGraphTool(cognite_client, {
+    "space": "cdf_cdm",
+    "version": "v1",
+    "externalId": "CogniteCore"
+}, ["CogniteFile"], "agent_log.log")
+
 find_maintenance_orders_tool = QueryKnowledgeGraphTool(cognite_client, {
     "space": "cdf_idm",
     "version": "v1",
@@ -45,6 +51,10 @@ def find_time_series(query: str):
     """Use this tool to find time series. Queries are typically on the format "search for time series X" or "list time series" or "list time series for asset with external id A and space B """
     return find_time_series_tool.execute(query)
 
+def find_files(query: str, operation: str):
+    """Use this tool to find files. Operation can be list, search or aggregate"""
+    return find_files_tool.execute(query+" Operation: "+operation)
+
 def query_time_series_data_points(space: str, externalId: str, start_iso8601: str, end_iso8601: str, num_data_points: int = 10):
     # Parse timestamps and ensure they have timezone info
     start = datetime.datetime.fromisoformat(start_iso8601)
@@ -71,7 +81,8 @@ agent = Agent(
         {'instance': find_assets_tool, 'function': find_assets},
         {'instance': find_time_series_tool, 'function': find_time_series},
         {'instance': query_time_series_data_points_tool, 'function': query_time_series_data_points},
-        {'instance': find_maintenance_orders_tool, 'function': find_maintenance_orders}
+        {'instance': find_maintenance_orders_tool, 'function': find_maintenance_orders},
+        {'instance': find_files_tool, 'function': find_files}
     ]
 )
 

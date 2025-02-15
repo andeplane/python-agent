@@ -35,9 +35,15 @@ class ChainOfThought(ReasoningBase):
         cognite_client = create_client()
         self.client = Swarm(client=cognite_client)
 
+        system_prompt = get_cot_system_prompt()
+        # Add tool system prompts
+        system_prompt += "\n\nTool specific instructions:\n"
+        for tool in tools:
+            system_prompt += tool['instance'].system_prompt_contribution()
+
         self.agent = Agent(
             model=model,
-            instructions=get_cot_system_prompt(),
+            instructions=system_prompt,
             functions=[tool['function'] for tool in tools]
         )
         
@@ -56,7 +62,7 @@ class ChainOfThought(ReasoningBase):
         cot_messages = messages.copy()
         cot_messages.append({"role": "user", "content": user_message})
         
-        plan = self.create_plan(messages, user_message)
+        plan = self.create_plan(messages, user_message, self.tools)
         
         cot_messages.append({"role": "assistant", "content": "I have created the following plan for this question: "+plan})
         cot_messages.append({"role": "assistant", "content": "I will now execute the plan step by step."})
@@ -85,8 +91,12 @@ class ChainOfThought(ReasoningBase):
             else:
                 thoughts.append("Feedback on thoughts so far: " + is_answered)
     
-    def create_plan(self, messages: list[dict[str, Any]], user_message: str) -> str:
-        call_llm = create_task_agent(self.model, self.log_file_name, planner_prompt)
+    def create_plan(self, messages: list[dict[str, Any]], user_message: str, tools: list[dict[str, Callable[[], Any] | AgentTool]]) -> str:
+        system_prompt = planner_prompt
+        system_prompt += "\n\nTool specific instructions:\n"
+        for tool in tools:
+            system_prompt += tool['instance'].system_prompt_contribution()
+        call_llm = create_task_agent(self.model, self.log_file_name, system_prompt)
         planner_messages = [
             *messages, 
             {"role": "user", "content": "Create a plan on how to answer the following message: "+user_message},
