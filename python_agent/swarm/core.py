@@ -2,10 +2,7 @@
 import copy
 import json
 from collections import defaultdict
-from typing import List, Callable, Union
-
-# Package/library imports
-from openai import OpenAI
+from typing import List, Any
 
 
 # Local imports
@@ -284,9 +281,9 @@ class Swarm:
     def run(
         self,
         agent: Agent,
-        messages: List,
-        context_variables: dict = {},
-        model_override: str = None,
+        messages: list[dict[str, Any]],
+        context_variables: dict[str, Any] = {},
+        model_override: str | None = None,
         stream: bool = False,
         debug: bool = False,
         max_turns: int = float("inf"),

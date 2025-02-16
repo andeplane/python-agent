@@ -79,7 +79,7 @@ class ChainOfThought(ReasoningBase):
 
             for message in answer.messages:
                 with open(self.log_file_name, "a", encoding='utf-8') as f:
-                    f.write(" ** Agent thinking: " + message['content'] + "\n\n")
+                    f.write("[Thinking ...]\n" + message['content'] + "\n\n")
             
             thoughts.append(answer.messages[-1]['content'])
             is_answered = self.validate(messages, user_message, thoughts, plan)
@@ -107,7 +107,7 @@ class ChainOfThought(ReasoningBase):
         response = response.messages[-1]['content']
         
         with open(self.log_file_name, "a", encoding='utf-8') as f:
-            f.write("  [Thinking ...] Agent plan: " + response)
+            f.write("[Thinking ...]\nAgent plan: " + response + "\n\n")
 
         return response
 
@@ -137,7 +137,7 @@ class ChainOfThought(ReasoningBase):
         response = response.messages[-1]['content']
 
         with open(self.log_file_name, "a", encoding='utf-8') as f:
-            f.write(" [Thinking ...] Agent answer validation: " + response + "\n\n")
+            f.write("[Thinking ...]\nAgent answer validation: " + response + "\n\n")
         if response and "Yes" in response:
             return True
         return response

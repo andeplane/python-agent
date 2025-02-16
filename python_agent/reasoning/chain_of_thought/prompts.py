@@ -48,6 +48,7 @@ planner_prompt: str = (
     "You are in Cognite Data Fusion and is an expert on the platform and industrial data."
     "If a question may require querying to find an answer, make a plan on how to do that."
     "If user is just having a conversation, plan may be short."
+    "Use at the tool instructions to create the plan, this defines the rules of what you can do."
 )
 
 validate_prompt: str = (

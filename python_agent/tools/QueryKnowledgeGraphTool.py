@@ -48,7 +48,7 @@ class QueryKnowledgeGraphTool(AgentTool):
 
     def execute(self, prompt: str):
         with open(self.log_file_name, "a", encoding='utf-8') as f:
-            f.write(f" [Thinking ...] Query Knowledge Graph: {self.views[0]}: {prompt}\n")
+            f.write(f"[Thinking ...]\nQuery Knowledge Graph: {self.views[0]}: {prompt}\n")
         body = {
             "prompt": prompt,
             "dataModels": [
@@ -72,7 +72,7 @@ class QueryKnowledgeGraphTool(AgentTool):
                 aggregation_results = self.execute_query({**query, "operation": 'aggregate', "aggregate": {"properties": {"count": ["externalId"]}}})
             items = data.get("items", [])
             with open(self.log_file_name, "a", encoding='utf-8') as f:
-                f.write(f" [Thinking ...] Query Knowledge Graph result: {len(items)} items.\n")
+                f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
             
             self.current_thought_log.append(f"[Tool call: Query knowledge graph]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}")
 
@@ -83,5 +83,5 @@ class QueryKnowledgeGraphTool(AgentTool):
             """
         except Exception as e:
             with open(self.log_file_name, "a", encoding='utf-8') as f:
-                f.write("  [Thinking ...] Query Knowledge Graph Error: " + str(e) + "\n\n")
+                f.write("[Thinking ...]\nQuery Knowledge Graph Error: " + str(e) + "\n\n")
             return {"error": str(e)}

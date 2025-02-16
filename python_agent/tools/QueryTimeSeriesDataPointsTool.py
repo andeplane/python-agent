@@ -40,7 +40,7 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
         num_data_points: int = 10,
     ):
         with open(self.log_file_name, "a", encoding='utf-8') as f:
-            f.write(f" [Thinking ...] Querying time series data points for {externalId} in space {space} from {start} to {end} with {num_data_points} data points\n")
+            f.write(f"[Thinking ...]\nQuerying time series data points for {externalId} in space {space} from {start} to {end} with {num_data_points} data points\n")
         import cognite.client.data_classes.filters as flt
         # 1. Retrieve timeseries metadata using the instances endpoint
         ts_response = self.cognite_client.data_modeling.instances.list(
