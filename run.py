@@ -41,20 +41,20 @@ query_time_series_data_points_tool = QueryTimeSeriesDataPointsTool(cognite_clien
 
 # Define a wrapper function that calls your tool.execute method.
 def find_assets(query: str, operation: str):
-    """Use this tool to find assets. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node."""
-    return find_assets_tool.execute(query+" Operation: "+operation)
+    """Use this tool to find assets. Be verbose in the natural langueage query, include details. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node. Only use search when you want to search for some keyword. Prefer list and filter on nodes if you can."""
+    return find_assets_tool.execute(f"{operation} assets {query}")
 
 def find_maintenance_orders(query: str, operation: str):
-    """Use this tool to find maintenance orders.  Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node."""
-    return find_maintenance_orders_tool.execute(query+" Operation: "+operation)
+    """Use this tool to find maintenance orders. Be verbose in the natural langueage query, include details. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node. Only use search when you want to search for some keyword. Prefer list and filter on nodes if you can."""
+    return find_maintenance_orders_tool.execute(f"{operation} maintenance orders {query}")
 
-def find_time_series(query: str):
-    """Use this tool to find time series. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node."""
-    return find_time_series_tool.execute(query)
+def find_time_series(query: str, operation: str):
+    """Use this tool to find time series. Be verbose in the natural langueage query, include details. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node. Only use search when you want to search for some keyword. Prefer list and filter on nodes if you can."""
+    return find_time_series_tool.execute(f"{operation} time series {query}")
 
 def find_files(query: str, operation: str):
-    """Use this tool to find files. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node."""
-    return find_files_tool.execute(query+" Operation: "+operation)
+    """Use this tool to find files. Be verbose in the natural langueage query, include details. Operation can be list, search or aggregate. Supports sort, limit and filters. Filtering on instances MUST include space and externalId for target node. Only use search when you want to search for some keyword. Prefer list and filter on nodes if you can."""
+    return find_files_tool.execute(f"{operation} files {query}")
 
 def query_time_series_data_points(space: str, externalId: str, start_iso8601: str, end_iso8601: str, num_data_points: int = 10):
     # Parse timestamps and ensure they have timezone info

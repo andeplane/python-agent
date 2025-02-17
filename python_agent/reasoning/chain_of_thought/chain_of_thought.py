@@ -15,13 +15,14 @@ def create_task_agent(model: str, log_file_name: str, system_prompt: str):
 
     agent = Agent(
         model=model,
-        instructions=system_prompt
+        instructions=system_prompt,
     )
 
     def call_llm(messages: list[dict]):
         return client.run(
             agent=agent, 
-            messages=messages
+            messages=messages,
+            max_turns=10
         )
 
     return call_llm
