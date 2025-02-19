@@ -1,0 +1,51 @@
+<QueryKnowledgeGraphTool instructions>
+Use this tool to query the knowledge graph (often known as data modeling or DMS).
+The input to the tool is mostly a natural language prompt, with some properties you can set in addition.
+The tool will both generate and execute the query, so you do not need to do that.
+It will generate a query for you, but here is a list of how these queries look like so you know what to ask for etc:
+ - A query looks like this:
+ {
+    "operation": "<search | aggregate | list>",
+    "search": { # optional
+        "query": "<search query string>",
+        "fields": [
+            # list of properties to search in
+        ]
+    },
+    "properties": [
+        # list of properties to return
+        # this list can also include properties from related instances
+    ],
+    "filter": {
+        # set of filters to apply
+        # these filters are typically operations on primitive properties
+        # or various filters on relations. this requires space and externalId on each such filter
+    },
+    "aggregate": { # optional
+        # set of properties to aggregate on, to find min,max,sum,avg and count of a certain property
+        # can also have groupBy on a property
+    },
+    "limit": # optional, number of results to return
+    "sort": [ # optional
+        {
+            'field': '<property name>',
+            'direction': 'ascending | descending'
+        }
+    ]
+}
+The tool will both generate and execute the query, so you do not need to do that.
+ - When users want to find instances with specific id's, they are often on a tag format like 11AB1234 (NORSOK and similar standards). For these you should always use search operation. Example ("Search for asset 11AB1234")
+ - When users wants to find data related to specific words, you should also use search operation (e.g. find work orders related to vibrations), and try to add multiple variants of it (e.g. vibration, vibrate etc.)
+ - If you want to find related data OtherType (e.g. work orders or files for asset X), search the asset first to get space and externalId. Then you can ask a question formulated like \"Find OtherType for asset with {space: <space>, externalId: <externalId>}\".
+ - ALL queries that involve filters on other instances must always include the space and externalId of the other instance in the query.
+ - Try to be as explicit as you can when using these tools.
+Examples:
+### Find work orders for asset 18AB1234
+Perform the following queries
+ - Search for asset 18AB1234
+ - Find work orders for asset with {{space: \"<result from previous query>\", externalId: \"<result from previous query>\"}}
+### Find how many work orders for asset 13FV1820 this year
+Perform the following queries
+ - Search for asset 13FV1820
+ - Count the number of work orders this year for asset with {{space: \"<result from previous query>\", externalId: \"<result from previous query>\"}}
+</QueryKnowledgeGraphTool instructions>

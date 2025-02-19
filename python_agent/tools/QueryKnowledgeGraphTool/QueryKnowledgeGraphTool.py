@@ -3,6 +3,7 @@ from python_agent.tools.LLMTool import LLMTool
 from dataclasses import dataclass, field
 from auth import create_client
 import json
+import os
 from typing import Any, Dict, List
 
 
@@ -22,26 +23,9 @@ class QueryKnowledgeGraphTool(AgentTool):
             "externalId": self.configuration['dataModels'][0]['externalId'],
         }
         self.views = self.configuration['dataModels'][0]['views']
+        with open(os.path.join(os.path.dirname(__file__), "system_prompt.txt"), "r") as f:
+            self.system_prompt_contribution = f.read()
         
-        self.system_prompt_contribution = (
-            "QueryKnowledgeGraphTool instructions:"
-            "You will often find data, and the context will be Cognite's Data Model Service (DMS). \n"
-            "To query data there, you can use tools that are specialized for that. \n"
-            "General instructions on how to query data in DMS: \n"
-            " - Specify that you want to search when a user specifies an identifier (like asset 18AB1234). This identifier often follows standards such as NORSOK. \n"
-            " - If you want to find related data OtherType (e.g. work orders or files for asset X), find the asset first to get space and externalId. Then you can ask a question formulated like \"Find OtherType for asset with {space: <space>, externalId: <externalId>}\". \n"
-            " - Try to be as explicit as you can when using these tools, but do not include too much information. If you want to perform search, specify that you want to perform search. \n"
-            "Examples: \n"
-            "### Find work orders for asset 18AB1234 \n"
-            "Perform the following queries \n"
-            " - Search for asset 18AB1234 \n"
-            " - Find work orders for asset with {{space: \"<result from previous query>\", externalId: \"<result from previous query>\"}} \n"
-            "### Find how many work orders for asset 13FV1820 this year \n"
-            "Perform the following queries \n"
-            " - Search for asset 13FV1820 \n"
-            " - Count the number of work orders this year for asset with {{space: \"<result from previous query>\", externalId: \"<result from previous query>\"}} \n"
-        )
-
     def execute_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
         body = {
             "operation": query["operation"],
@@ -108,7 +92,8 @@ class QueryKnowledgeGraphTool(AgentTool):
                 if query.get("operation") == "aggregate":
                     f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {items}.\n")
                 else:
-                    f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
+                    #f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
+                    f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {json.dumps(items, indent=1)}.\n")
 
             # Add to the internal thought log
             self.current_thought_log.append(

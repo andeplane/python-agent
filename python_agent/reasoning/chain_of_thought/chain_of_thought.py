@@ -58,9 +58,16 @@ class ChainOfThought(ReasoningBase):
     def create_plan(self, user_message: str, messages: list[dict[str, Any]]) -> str:
         system_prompt = planner_prompt
         system_prompt += "\n\nTool specific instructions:\n"
+        
+        already_added_tools: set[str] = set()
         for tool in self.agent.tools:
+            if tool.type in already_added_tools:
+                continue
+            already_added_tools.add(tool.type)
+
             if tool.system_prompt_contribution:
-                system_prompt += tool.system_prompt_contribution
+                system_prompt += tool.system_prompt_contribution+"\n\n"
+                
         plan_messages = [{"role": "system", "content": system_prompt}]
         plan_messages.extend(messages)
         plan_messages.append({"role": "user", "content": "Create a plan on how to answer the following message: "+user_message})
