@@ -104,7 +104,12 @@ class QueryKnowledgeGraphTool(AgentTool):
 
             items = data.get("items", [])
             with open(self.log_file_name, "a", encoding="utf-8") as f:
-                f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
+                f.write(f"[Thinking ...]\nQuery Knowledge Graph query: {query}.\n")
+                if query.get("operation") == "aggregate":
+                    f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {items}.\n")
+                else:
+                    f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
+
 
             # Add to the internal thought log
             self.current_thought_log.append(
