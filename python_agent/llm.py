@@ -58,7 +58,11 @@ def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | 
             tool_name = tool_call['function']['name']
             tool_arguments = json.loads(tool_call['function']['arguments'])
             tool_execute = tool_execute_map[tool_name]
-            tool_result = tool_execute(tool_arguments)
+            try:
+                tool_result = tool_execute(tool_arguments)
+            except Exception as e:
+                print("Error executing tool: ", e)
+                tool_result = "Error executing tool: " + str(e)
             new_messages.append({
                 "role": "tool",
                 "content": tool_result,
