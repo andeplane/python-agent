@@ -94,8 +94,9 @@ class QueryKnowledgeGraphTool(AgentTool):
 
             # Add to the internal thought log
             self.current_thought_log.append(
-                f"[Tool call: Query knowledge graph]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}"
+                f"[Tool call: Query knowledge graph, {self.externalId}]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}"
             )
+            print(f"  [Tool call: Query knowledge graph, {self.externalId}]: Question: {prompt} Views: {self.views}. Number of instances returned: {len(items)}")
 
             for item in items:
                 item["Instance type"] = query["dataModelView"]

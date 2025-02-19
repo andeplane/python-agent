@@ -110,7 +110,7 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
 
         
         self.current_thought_log.append(f"[Tool call: Query time series data points]:\n Time series: {externalId}\n Space: {space}\n Start: {start}\n End: {end}\n Number of data points: {num_data_points}")
-
+        print(f"  [Tool call: Query time series data points]: Time series: {externalId} Space: {space} Start: {start} End: {end} Number of data points: {num_data_points}")
         data_points_answer = f"Here are {num_data_points} aggregates:\n{json.dumps(data_points_local, indent=2)}" if data_points_local else "There are no data points in the time range."
 
         # 7. Construct a message combining the latest datapoint and the aggregates
