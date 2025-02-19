@@ -110,7 +110,6 @@ class QueryKnowledgeGraphTool(AgentTool):
                 else:
                     f.write(f"[Thinking ...]\nQuery Knowledge Graph result: {len(items)} items.\n")
 
-
             # Add to the internal thought log
             self.current_thought_log.append(
                 f"[Tool call: Query knowledge graph]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}"

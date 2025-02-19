@@ -1,7 +1,12 @@
-from python_agent.Agent import Agent, ReasoningStrategy
+from python_agent.Agent import Agent, ReasoningStrategy, AgentParameters
 # from python_agent.utils import send_cog_ai_request
 
-agent = Agent.load("ai-bluefield", "anders-agent", reasoning_strategy=ReasoningStrategy.COT)
+parameters = AgentParameters(
+    reasoning_strategy=ReasoningStrategy.COT,
+    max_thoughts=10,
+)
+
+agent = Agent.load("ai-bluefield", "anders-agent", parameters)
 
 import sys
 
@@ -20,5 +25,3 @@ else:
             break
         response = agent.think(user_input)
         print(f"Agent: {response}")
-# agents = send_cog_ai_request("/api/v1/projects/ai-bluefield/ai/agents/list", "GET").json()
-# print(json.dumps(agents, indent=2))

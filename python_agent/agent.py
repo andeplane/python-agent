@@ -17,6 +17,14 @@ class ReasoningStrategy(Enum):
     COT = "Chain of Thought"
 
 @dataclass
+class AgentParameters:
+    reasoning_strategy: ReasoningStrategy
+    max_thoughts: int = 10
+    debug: bool = False
+    log_file_name: str = "agent.log"
+
+
+@dataclass
 class Agent:
     externalId: str
     instructions: str
@@ -27,8 +35,7 @@ class Agent:
     reasoning_engine: ReasoningBase = field(init=False)
     exampleQuestions: list[Dict[str, Any]] = field(default_factory=list)
     tools: list[AgentTool] = field(default_factory=list)
-    createdTime: int = 0
-    lastUpdatedTime: int = 0
+    max_thoughts: int = 10
     ownerId: str = ""
     # Optional internal fields
     debug: bool = False
@@ -88,10 +95,10 @@ If you get errors from API, try reformulations of the question and try at least 
                 system_prompt += tool.system_prompt_contribution+"\n\n"
         return system_prompt
     @classmethod
-    def from_json(cls, data: Dict[str, Any], log_file: str, reasoning_strategy: ReasoningStrategy) -> "Agent":
+    def from_json(cls, data: Dict[str, Any], parameters: AgentParameters) -> "Agent":
         # Convert each tool dict into an AgentTool instance.
         tools_data = data.get("tools", [])
-        tools = [t for t in (create_agent_tool(tool, log_file) for tool in tools_data) if t is not None]
+        tools = [t for t in (create_agent_tool(tool, parameters.log_file_name) for tool in tools_data) if t is not None]
         
         return cls(
             externalId=data.get("externalId", ""),
@@ -101,15 +108,15 @@ If you get errors from API, try reformulations of the question and try at least 
             model=data.get("model", ""),
             exampleQuestions=data.get("exampleQuestions", []),
             tools=tools,
-            createdTime=data.get("createdTime", 0),
-            lastUpdatedTime=data.get("lastUpdatedTime", 0),
             ownerId=data.get("ownerId", ""),
-            log_file_name=log_file,
-            reasoning_strategy=reasoning_strategy
+            log_file_name=parameters.log_file_name,
+            reasoning_strategy=parameters.reasoning_strategy,
+            max_thoughts=parameters.max_thoughts,
+            debug=parameters.debug
         )
 
     @classmethod
-    def load(cls, project: str, identifier: str, log_file: str = "agent.log", reasoning_strategy: ReasoningStrategy = ReasoningStrategy.PLAIN) -> "Agent":
+    def load(cls, project: str, identifier: str, parameters: AgentParameters) -> "Agent":
         url = f"/api/v1/projects/{project}/ai/agents/byids"
         # Assuming send_cog_ai_request is defined elsewhere in your code.
         resp = send_cog_ai_request(url, "POST", payload={'items': [{'externalId': identifier}]})
@@ -119,4 +126,4 @@ If you get errors from API, try reformulations of the question and try at least 
         if not items:
             raise Exception(f"Agent {identifier} not found")
         agent_data = items[0]
-        return cls.from_json(agent_data, log_file, reasoning_strategy)
+        return cls.from_json(agent_data, parameters)
