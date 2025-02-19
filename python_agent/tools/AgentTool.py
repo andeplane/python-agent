@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
+from cognite.client import CogniteClient
 from typing import Dict, Any, List
 from python_agent.tools.LLMTool import LLMTool
+from python_agent.utils import create_client
+
 @dataclass
 class AgentTool:
     externalId: str
@@ -9,11 +12,12 @@ class AgentTool:
     instructions: str
     configuration: Dict[str, Any]
     log_file_name: str
+    cognite_client: CogniteClient = field(init=False)
     system_prompt_contribution: str | None = field(default=None)
-
     def __post_init__(self):
         self.current_thought_log: List[str] = []
         self.all_thoughts_log: List[str] = []
+        self.cognite_client = create_client()
 
     def reset_thought_log(self):
         self.all_thoughts_log.extend(self.current_thought_log)

@@ -1,7 +1,6 @@
 from python_agent.tools.AgentTool import AgentTool
 from python_agent.tools.LLMTool import LLMTool
 from dataclasses import dataclass, field
-from auth import create_client
 import json
 import os
 from typing import Any, Dict, List
@@ -15,8 +14,6 @@ class QueryKnowledgeGraphTool(AgentTool):
     def __post_init__(self):
         # Call the base class post-init to initialize logs
         super().__post_init__()
-        self.cognite_client = create_client()
-        
         self.data_model = {
             "space": self.configuration['dataModels'][0]['space'],
             "version": self.configuration['dataModels'][0]['version'],
