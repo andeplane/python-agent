@@ -65,7 +65,6 @@ def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | 
             try:
                 tool_result = tool_execute(tool_arguments)
             except Exception as e:
-                print("Error executing tool: ", e)
                 tool_result = "Error executing tool: " + str(e)
             new_messages.append({
                 "role": "tool",
