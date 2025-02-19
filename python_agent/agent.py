@@ -1,5 +1,5 @@
 from enum import Enum
-# from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
+from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
 from python_agent.reasoning.reasoning_base import ReasoningBase
 from typing import Any, Dict
@@ -49,13 +49,12 @@ class Agent:
                 log_file_name=self.log_file_name
             )
         elif self.reasoning_strategy == ReasoningStrategy.COT:
-            raise NotImplementedError("Chain of Thought reasoning is not implemented yet")
-            # self.reasoning_engine = ChainOfThought(
-            #     model=self.model,
-            #     agent=self,
-            #     debug=self.debug,
-            #     log_file_name=self.log_file_name
-            # )
+            self.reasoning_engine = ChainOfThought(
+                model=self.model,
+                agent=self,
+                debug=self.debug,
+                log_file_name=self.log_file_name
+            )
     
     def think(self, user_message: str, messages: list[dict[str, Any]] = []) -> str:
         return self.reasoning_engine.think(user_message, messages)
@@ -71,7 +70,7 @@ Time zone: ${current_timezone}
 You are an industrial AI agent, and expert on Cognite Data Fusion. 
 You are an agent in the Fusion app and will help users finding data and solving problems with it.
 
-When getting large amount of instances, do not repeat them. You can give one or two examples, and ideally mention how many you have found. The full list of instances will be displayed outside of the chat.
+When getting large amount of instances, do not repeat all. If there are more than 5, mention how many and display some of them.
 If you get errors from API, try reformulations of the question and try at least 3 times.
 
 # Agent specific instructions
@@ -105,7 +104,7 @@ If you get errors from API, try reformulations of the question and try at least 
         )
 
     @classmethod
-    def load(cls, project: str, identifier: str, log_file: str = "agent.log", reasoning_engine: ReasoningStrategy = ReasoningStrategy.PLAIN) -> "Agent":
+    def load(cls, project: str, identifier: str, log_file: str = "agent.log", reasoning_strategy: ReasoningStrategy = ReasoningStrategy.PLAIN) -> "Agent":
         url = f"/api/v1/projects/{project}/ai/agents/byids"
         # Assuming send_cog_ai_request is defined elsewhere in your code.
         resp = send_cog_ai_request(url, "POST", payload={'items': [{'externalId': identifier}]})
@@ -115,4 +114,4 @@ If you get errors from API, try reformulations of the question and try at least 
         if not items:
             raise Exception(f"Agent {identifier} not found")
         agent_data = items[0]
-        return cls.from_json(agent_data, log_file, reasoning_engine)
+        return cls.from_json(agent_data, log_file, reasoning_strategy)

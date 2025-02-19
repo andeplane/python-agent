@@ -1,7 +1,7 @@
-from python_agent.Agent import Agent
+from python_agent.Agent import Agent, ReasoningStrategy
 # from python_agent.utils import send_cog_ai_request
 
-agent = Agent.load("ai-bluefield", "anders-agent")
+agent = Agent.load("ai-bluefield", "anders-agent", reasoning_strategy=ReasoningStrategy.COT)
 
 import sys
 

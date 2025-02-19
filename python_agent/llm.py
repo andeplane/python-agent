@@ -23,20 +23,27 @@ def get_tools(tools: list[LLMTool]) -> tuple[list[dict[str, Any]], dict[str, Cal
             tool_execute_map[tool.agent_tool.externalId] = lambda x: llm_tool.invoke(**x)
     return tools_schemas, tool_execute_map
 
-def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool]) -> str:
+def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | None = None) -> dict[str, Any]:
     cognite_client = create_client()
     new_messages = messages.copy()
-    
-    tools_schemas, tool_execute_map = get_tools(tools)
-    # print("tools: ", json.dumps(tools, indent=2))
+    tool_calls: list[dict[str, Any]] = []
+
+    if tools:
+        tools_schemas, tool_execute_map = get_tools(tools)
+    else:
+        tools_schemas = []
+        tool_execute_map = {}
     
     while True:
+        json_body = {
+            "model": model,
+            "messages": new_messages,
+        }
+        if tools:
+            json_body["tools"] = tools_schemas
+        
         response = cognite_client.post(f'/api/v1/projects/{cognite_client.config.project}/ai/chat/completions',
-            json = {
-                "model": model,
-                "messages": new_messages,
-                "tools": tools_schemas
-            },
+            json = json_body,
             headers={"cdf-version": "alpha"}
         )
         
@@ -51,12 +58,19 @@ def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool]) -
             tool_name = tool_call['function']['name']
             tool_arguments = json.loads(tool_call['function']['arguments'])
             tool_execute = tool_execute_map[tool_name]
-            print(" Performing tool call with tool name: ", tool_name, " and arguments: ", tool_arguments)
             tool_result = tool_execute(tool_arguments)
             new_messages.append({
                 "role": "tool",
                 "content": tool_result,
                 "toolCallId": tool_call['id']
             })
+            tool_calls.append({
+                "tool_name": tool_name,
+                "tool_arguments": tool_arguments,
+                "tool_result": tool_result
+            })
         else:
-            return data['choices'][0]['message']['content']
+            return {
+                "content": data['choices'][0]['message']['content'],
+                "tool_calls": tool_calls
+            }
