@@ -20,7 +20,11 @@ def get_tools(tools: list[LLMTool]) -> tuple[list[dict[str, Any]], dict[str, Cal
                 }
             })
             
-            tool_execute_map[tool.agent_tool.externalId] = lambda x: llm_tool.invoke(**x)
+            # Create closure to capture the current llm_tool
+            def create_tool_executor(tool: LLMTool) -> Callable[[Any], Any]:
+                return lambda x: tool.invoke(**x)
+            
+            tool_execute_map[tool.agent_tool.externalId] = create_tool_executor(llm_tool)
     return tools_schemas, tool_execute_map
 
 def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | None = None) -> dict[str, Any]:
