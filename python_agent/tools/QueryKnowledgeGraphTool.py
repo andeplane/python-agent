@@ -23,24 +23,6 @@ class QueryKnowledgeGraphTool(AgentTool):
         }
         self.views = self.configuration['dataModels'][0]['views']
         
-        # self.system_prompt_contribution = (
-        #     "QueryKnowledgeGraphTool instructions:\n"
-        #     "This tool allows query generation from natural language. The following things can be mentioned:\n"
-        #     " - Operation. You can choose to list, search or aggregate.\n"
-        #     " - Filters on properties. This typically is filters on datetime properties, but often also relations.\n"
-        #     "   - In order to filter on relations, you always must provide the space and the externalId of the target node.\n"
-        #     " - Sorting. You can sort on properties.\n"
-        #     " - Limit. You can limit the number of instances returned.\n"
-        #     "Usually, data is centered around assets. The strategy is often to find the right asset, then perform list queries with filters on this asset instance (space+externalId).\n"
-        #     "Alternatively, you can search directly on instances, but only when these instances are not coupled to the asset or it does not matter.\n"
-        #     "Examples:\n"
-        #     ' - "Show me time series for asset in space <SPACE> with externalId <EXTERNALID>"\n'
-        #     ' - "Show me assets with parent space <SPACE> with externalId <EXTERNALID>"\n'
-        #     ' - "Show me activities sorted by start time."\n'
-        #     ' - "Search for assets with name <NAME>"\n'
-        #     ' - "How many activities were there in 2020?"\n'
-        #     ' - "Show me the 10 latest activities"\n'
-        # )
         self.system_prompt_contribution = (
             "QueryKnowledgeGraphTool instructions:"
             "You will often find data, and the context will be Cognite's Data Model Service (DMS). \n"
