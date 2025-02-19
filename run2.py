@@ -1,9 +1,10 @@
 from python_agent.Agent import Agent, ReasoningStrategy, AgentParameters
-# from python_agent.utils import send_cog_ai_request
 
 parameters = AgentParameters(
     reasoning_strategy=ReasoningStrategy.COT,
     max_thoughts=10,
+    debug=False,
+    log_file_name="agent.log"
 )
 
 agent = Agent.load("ai-bluefield", "anders-agent", parameters)
