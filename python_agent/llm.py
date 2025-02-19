@@ -54,7 +54,6 @@ def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | 
         )
         with open("llm_calls.log", "a", encoding="utf-8") as f:
             f.write(f"Response: {json.dumps(response.json(), indent=2)}\n")
-        
         response.raise_for_status()
         data = response.json()
         

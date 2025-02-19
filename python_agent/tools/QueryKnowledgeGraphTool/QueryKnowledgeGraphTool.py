@@ -97,6 +97,9 @@ class QueryKnowledgeGraphTool(AgentTool):
                 f"[Tool call: Query knowledge graph]:\n Question: {prompt}\n Views: {self.views}\n Generated query: {json.dumps(query)}\n Number of instances returned: {len(items)}"
             )
 
+            for item in items:
+                item["Instance type"] = query["dataModelView"]
+
             return (
                 f"I generated the following query: {query}\n"
                 f"Which gave the following instances from CDF: {items}\n"

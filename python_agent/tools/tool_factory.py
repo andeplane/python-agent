@@ -1,9 +1,10 @@
 from typing import Any, Dict, Type
 from python_agent.tools.AgentTool import AgentTool
 from python_agent.tools.QueryKnowledgeGraphTool.QueryKnowledgeGraphTool import QueryKnowledgeGraphTool
-
+from python_agent.tools.QueryTimeSeriesDataPointsTool.QueryTimeSeriesDataPointsTool import QueryTimeSeriesDataPointsTool
 TOOL_TYPE_MAPPING: Dict[str, Type[AgentTool]] = {
-    "queryDataModel": QueryKnowledgeGraphTool
+    "queryDataModel": QueryKnowledgeGraphTool,
+    "queryTimeSeriesDatapoints": QueryTimeSeriesDataPointsTool,
 }
 
 def create_agent_tool(tool_data: Dict[str, Any], log_file_name: str) -> AgentTool | None:

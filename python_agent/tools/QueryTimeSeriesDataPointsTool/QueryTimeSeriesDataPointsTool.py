@@ -1,11 +1,12 @@
 from python_agent.tools.AgentTool import AgentTool
+from python_agent.tools.LLMTool import LLMTool
+from dataclasses import dataclass
 import datetime
 import json
+from typing import Any, Dict, List
 
+@dataclass
 class QueryTimeSeriesDataPointsTool(AgentTool):
-    def __init__(self, cognite_client, log_file_name: str):
-        super().__init__(cognite_client, log_file_name)
-        
     def calculate_granularity(self, start_ts: datetime.datetime, end_ts: datetime.datetime, num_points: int) -> str:
         import math
         # Calculate the total time difference in seconds between the two datetime objects
@@ -35,36 +36,23 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
         self,
         space: str,
         externalId: str,
-        start: datetime.datetime,
-        end: datetime.datetime,
+        start: str,
+        end: str,
         num_data_points: int = 10,
-    ):
+    ) -> str:
+        num_data_points = max(10, min(num_data_points, 100))
+        
         with open(self.log_file_name, "a", encoding='utf-8') as f:
             f.write(f"[Thinking ...]\nQuerying time series data points for {externalId} in space {space} from {start} to {end} with {num_data_points} data points\n")
-        import cognite.client.data_classes.filters as flt
-        # 1. Retrieve timeseries metadata using the instances endpoint
-        ts_response = self.cognite_client.data_modeling.instances.list(
-            sources=[
-                {
-                    "source": {
-                        "externalId": "CogniteTimeSeries",
-                        "space": "cdf_cdm",
-                        "version": "v1",
-                        "type": "view",
-                    }
-                }
-            ],
-            filter=flt.And(flt.Equals(['node', 'space'], value=space), flt.Equals(['node', 'externalId'], value=externalId)),
-        )
-        if not ts_response:
-            return {
-                "message": f"Unable to find timeseries: {externalId} in space: {space}"
-            }
-        timeseries = ts_response[0]
-
+        
         # 2. Convert start and end times to UTC and then to UNIX timestamps (ms)
-        start_utc = start.astimezone(datetime.timezone.utc)
-        end_utc = end.astimezone(datetime.timezone.utc)
+        start_utc = datetime.datetime.fromisoformat(start).astimezone(datetime.timezone.utc)
+        end_utc = datetime.datetime.fromisoformat(end).astimezone(datetime.timezone.utc)
+        
+        # ensure that start is at least 30 minutes before end
+        # if start_utc > end_utc - datetime.timedelta(minutes=30):
+        #     start_utc = end_utc - datetime.timedelta(minutes=30)
+
         start_ts = int(start_utc.timestamp() * 1000)
         end_ts = int(end_utc.timestamp() * 1000)
 
@@ -88,7 +76,7 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
             list_url, headers={"cdf-version": "alpha"}, json=list_payload
         )
         points = list_response.json()['items'][0]["datapoints"]
-
+        
         # 5. Retrieve the latest datapoint via the timeseries data latest endpoint
         latest_url = f"/api/v1/projects/{self.cognite_client.config.project}/timeseries/data/latest"
         latest_payload = {
@@ -120,19 +108,63 @@ class QueryTimeSeriesDataPointsTool(AgentTool):
             pt_copy["timestamp"] = datetime.datetime.fromtimestamp(pt["timestamp"] / 1000).isoformat()
             data_points_local.append(pt_copy)
 
-        # 7. If no aggregated points are returned, report that
-        if not points:
-            return {
-                "message": "There are no datapoints in this timeseries, or in the given range"
-            }
+        
         self.current_thought_log.append(f"[Tool call: Query time series data points]:\n Time series: {externalId}\n Space: {space}\n Start: {start}\n End: {end}\n Number of data points: {num_data_points}")
 
-        # 8. Construct a message combining the latest datapoint and the aggregates
+        data_points_answer = f"Here are {num_data_points} aggregates:\n{json.dumps(data_points_local, indent=2)}" if data_points_local else "There are no data points in the time range."
+
+        # 7. Construct a message combining the latest datapoint and the aggregates
         result_message = (
-            f"For the time series: {externalId} in space: {space} from {start} to {end} with {num_data_points} data points\n"
+            f"For the time series: {externalId} in space: {space} from {start} to {end} with {num_data_points} data points:\n"
+            f"{data_points_answer}\n"
             f"Here is the latest data point:\n{json.dumps(latest_dp_local, indent=2)}.\n\n"
-            f"Here are {num_data_points} aggregates:\n{json.dumps(data_points_local, indent=2)}"
         )
-        # 9. Return a response with a display configuration and the message
+        with open(self.log_file_name, "a", encoding='utf-8') as f:
+            f.write("[Thinking ...]\nQuery time series data points result: " + result_message + "\n")
+        # 8. Return a response with a display configuration and the message
+        
         return result_message
 
+    def get_llm_tools(self) -> List[LLMTool]:
+        """
+        Returns a list containing a single LLMTool for this QueryKnowledgeGraphTool.
+        """
+        return [QueryTimeSeriesDataPointsLLMTool(self)]
+
+class QueryTimeSeriesDataPointsLLMTool(LLMTool):
+    def __init__(self, agent_tool: QueryTimeSeriesDataPointsTool):
+        self.agent_tool = agent_tool
+
+    def invoke(self, **kwargs: Any) -> str:
+        return self.agent_tool.execute(**kwargs)
+
+    def get_json_schema(self) -> Dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "space": {
+                    "type": "string",
+                    "description": "The space of the time series instance",
+                },
+                "externalId": {
+                    "type": "string",
+                    "description": "The external ID of the time series instance",
+                },
+                "start": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The start date of the time series in ISO 8601 format",
+                },
+                "end": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The end date of the time series in ISO 8601 format",
+                },
+                "num_data_points": {
+                    "type": "integer",
+                    "description": "The number of data points to retrieve. Minimum 10 maximum 100.",
+                    "default": 20,
+                },
+            },
+            "required": ["space", "externalId", "start", "end", "num_data_points"],
+        }
