@@ -78,7 +78,12 @@ If you get errors from API, try reformulations of the question and try at least 
 
 # Tool specific instructions
 """
+        already_added_tools: set[str] = set()
         for tool in self.tools:
+            if tool.type in already_added_tools:
+                continue
+            already_added_tools.add(tool.type)
+
             if tool.system_prompt_contribution:
                 system_prompt += tool.system_prompt_contribution+"\n\n"
         return system_prompt
