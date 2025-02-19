@@ -42,10 +42,14 @@ def call_llm(messages: list[dict[str, Any]], model: str, tools: List[LLMTool] | 
         if tools:
             json_body["tools"] = tools_schemas
         
+        with open("llm_calls.log", "a", encoding="utf-8") as f:
+            f.write(f"Request: {json.dumps(json_body, indent=2)}\n")
         response = cognite_client.post(f'/api/v1/projects/{cognite_client.config.project}/ai/chat/completions',
             json = json_body,
             headers={"cdf-version": "alpha"}
         )
+        with open("llm_calls.log", "a", encoding="utf-8") as f:
+            f.write(f"Response: {json.dumps(response.json(), indent=2)}\n")
         
         response.raise_for_status()
         data = response.json()

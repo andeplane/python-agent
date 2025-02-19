@@ -124,7 +124,7 @@ class QueryKnowledgeGraphTool(AgentTool):
         except Exception as e:
             with open(self.log_file_name, "a", encoding="utf-8") as f:
                 f.write("[Thinking ...]\nQuery Knowledge Graph Error: " + str(e) + "\n\n")
-            return {"error": str(e)}
+            raise e
     
     def get_llm_tools(self) -> List[LLMTool]:
         """
