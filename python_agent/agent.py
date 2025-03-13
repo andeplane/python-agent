@@ -1,7 +1,7 @@
 from enum import Enum
 from python_agent.reasoning.chain_of_thought.chain_of_thought import ChainOfThought
 from python_agent.reasoning.plain import PlainReasoning
-from python_agent.reasoning.reasoning_base import ReasoningBase
+from python_agent.reasoning.reasoning_base import ReasoningBases
 from typing import Any, Dict
 from python_agent.tools.AgentTool import AgentTool
 from python_agent.tools.tool_factory import create_agent_tool
@@ -15,6 +15,7 @@ logger = logging.getLogger('agent')
 class ReasoningStrategy(Enum):
     PLAIN = "Plain"
     COT = "Chain of Thought"
+    TOT = "Three of thought"
 
 @dataclass
 class AgentParameters:
